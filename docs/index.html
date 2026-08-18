@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PetiKhula — carton or loose?</title>
+<meta name="description" content="Sealed carton or loose pieces? PetiKhula nets price, spoilage, capital-holding cost and your real off-take into a true cost per usable unit.">
+<style>
+  :root{--bg:#f7f5f2;--card:#fff;--ink:#211a12;--muted:#6b5d4c;--brand:#9a5b2e;--brand-ink:#5e3417;--line:#e8e2da;--accent:#f4ece3}
+  @media (prefers-color-scheme:dark){:root{--bg:#141210;--card:#1d1a16;--ink:#efe7dc;--muted:#b3a595;--brand:#d08a54;--brand-ink:#f0d3ba;--line:#2b2620;--accent:#241f18}}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{padding:64px 0 24px;text-align:center}
+  .eyebrow{color:var(--brand);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px}
+  h1{font-size:44px;margin:.2em 0 .1em;letter-spacing:-.02em}
+  .tag{color:var(--muted);font-size:19px;max-width:640px;margin:8px auto 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:28px 0}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}h1{font-size:34px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .card h2{margin:0 0 8px;font-size:20px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:15px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .out{margin-top:16px;background:var(--accent);border-radius:12px;padding:16px}
+  .big{font-size:30px;font-weight:800;color:var(--brand-ink)}
+  .rowline{display:flex;justify-content:space-between;padding:3px 0;font-size:14px;border-top:1px dashed var(--line);margin-top:6px}
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:40px 0}
+  code{background:var(--accent);padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">PetiKhula · पेटी बनाम खुला</div>
+    <h1>Carton, or loose?</h1>
+    <p class="tag">A carton looks cheaper per unit — until slow sell-through locks your capital and
+      spoilage eats the gap. PetiKhula turns four interacting numbers into one true cost per usable unit.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Try it</h2>
+      <div class="two">
+        <div><label>Carton price/unit (₹)</label><input id="cp" type="number" value="35"></div>
+        <div><label>Loose price/unit (₹)</label><input id="lp" type="number" value="40"></div>
+      </div>
+      <div class="two">
+        <div><label>Units per carton</label><input id="cs" type="number" value="24"></div>
+        <div><label>Sell-through /week</label><input id="wk" type="number" value="6"></div>
+      </div>
+      <div class="two">
+        <div><label>Spoilage %</label><input id="sp" type="number" value="5"></div>
+        <div><label>Capital cost %/yr</label><input id="cap" type="number" value="24"></div>
+      </div>
+      <div class="out">
+        <div>Better buy</div>
+        <div class="big" id="win">—</div>
+        <div class="rowline"><span>Carton true cost/usable unit</span><b id="rc">–</b></div>
+        <div class="rowline"><span>Loose cost/usable unit</span><b id="rl">–</b></div>
+        <div class="rowline"><span>Holding cost/unit</span><b id="rh">–</b></div>
+        <div class="rowline"><span>Weeks to sell a carton</span><b id="rw">–</b></div>
+        <div class="rowline"><span>Break-even off-take/week</span><b id="rb">–</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Why the carton can lose</h2>
+      <p style="color:var(--muted)">A carton at ₹35/unit vs loose at ₹40 looks like a flat ₹5 win.
+        But a 24-unit carton selling 6/week is four weeks of locked capital plus spoilage — which can
+        erase the gap. Four inputs, a break-even, not a ratio you can eyeball.</p>
+      <p style="color:var(--muted)">True cost/usable unit =
+        <code>carton price ÷ (1 − spoilage)</code> + a capital-holding charge over the weeks it takes
+        to sell down. Break-even off-take is the weekly speed where carton finally beats loose.</p>
+      <p style="color:var(--muted);font-size:14px">Built as Flutter → Go → PostgreSQL; the Go
+        middleware keeps a history of the decisions you ran.</p>
+    </div>
+  </div>
+  <footer>PetiKhula · a local-first shopkeeper tool · offline, no account.</footer>
+</div>
+<script>
+  const $=id=>document.getElementById(id), inr=v=>'₹'+(isFinite(v)?v:0).toFixed(2);
+  function calc(){
+    const cp=+$('cp').value||0, lp=+$('lp').value||0, cs=+$('cs').value||0,
+          wk=+$('wk').value||0, sp=+$('sp').value||0, cap=+$('cap').value||0;
+    const adj = cp/(1-sp/100);
+    const weeks = wk>0 ? cs/wk : 0;
+    const holding = cp*(cap/100)*(weeks/52)/2;
+    const carton = adj+holding;
+    const win = carton<lp ? 'Carton' : (lp<carton ? 'Loose' : 'Tie');
+    const k = cp*(cap/100)*(cs/52)/2, gap = lp-adj;
+    const be = (gap>0&&k>0) ? k/gap : 0;
+    $('win').textContent=win;
+    $('rc').textContent=inr(carton); $('rl').textContent=inr(lp);
+    $('rh').textContent=inr(holding); $('rw').textContent=weeks.toFixed(1);
+    $('rb').textContent = be>0 ? be.toFixed(1)+' units' : '—';
+  }
+  document.querySelectorAll('input').forEach(el=>el.addEventListener('input',calc)); calc();
+</script>
+</body>
+</html>
